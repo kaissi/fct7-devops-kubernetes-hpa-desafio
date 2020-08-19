@@ -1,0 +1,33 @@
+steps:
+
+- id: "Executar Testes Unitários"
+  name: 'gcr.io/cloud-builders/go:alpine'
+  args:
+    - 'test'
+    - './src/github.com/kaissi/fct7-devops-kubernetes-hpa-desafio'
+    - '-v'
+  env:
+    - 'GOPATH=/go'
+
+- id: "Fazer o build da imagem Docker"
+  name: 'gcr.io/cloud-builders/docker'
+  args:
+    - 'build'
+    - './src'
+    - '-t'
+    - 'kaissi/go-hpa'
+
+- id: "Executar o container"
+  name: 'gcr.io/cloud-builders/docker'
+  args:
+    - 'run'
+    - '--rm'
+    - '--detach'
+    - '--name=go-hpa'
+    - '--network=cloudbuild'
+    - '--publish=8001:8001'
+    - 'kaissi/go-hpa'
+
+- id: "Testar a imagem gerada"
+  name: 'busybox'
+  args: [ 'wget', '-qO-', 'http://go-hpa:8001' ]
